@@ -1,0 +1,2 @@
+# ignore node modules as those can be installed from package.json
+node_modules

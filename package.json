@@ -1,0 +1,22 @@
+{
+  "name": "networking_base",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./build/example/example_server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build" : "tsc"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "ws": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/ws": "^8.2.1"
+  }
+}
