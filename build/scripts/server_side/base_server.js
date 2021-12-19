@@ -67,7 +67,19 @@ export class BaseServer extends Room {
                 this.MessageHandler.emit('error_format', ws, data);
                 return;
             });
-            this.MessageHandler.emit('connected', ws);
+            ws.on("close", (code, reason) => {
+                this.MessageHandler.emit("close", ws, code, reason);
+            });
+            ws.on("error", (err) => {
+                this.MessageHandler.emit("error", ws, err);
+            });
+            ws.on("ping", (data) => {
+                this.MessageHandler.emit("ping", ws, data);
+            });
+            ws.on("pong", (data) => {
+                this.MessageHandler.emit("ping", ws, data);
+            });
+            this.MessageHandler.emit('connection', ws);
         });
     }
     registerEventListener(eventName, callback) {
