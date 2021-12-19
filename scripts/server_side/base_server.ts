@@ -8,7 +8,7 @@ import { Message } from "./message.js"
 // UTILITY
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { IRoom } from "./room.js"
+import { Room } from "./room.js"
 
 function HasJsonStructure(str : string) {
     if (typeof str !== 'string') return false;
@@ -30,7 +30,7 @@ function HasMessageStructure(obj : Object){
     return true
 }
 
-export class BaseServer extends IRoom{
+export class BaseServer extends Room{
     port : number;
     app : express.Express
     server : http.Server;
@@ -44,12 +44,14 @@ export class BaseServer extends IRoom{
         super(clients)
         this.port = port
         this.app = express()
+        console.log(`directory ${__directory}`)
         this.app.use('/client/', express.static(path.join(__directory, "../client/"))) //add the client files to online
         this.app.use('/both/', express.static(path.join(__directory, "../both/"))) //add the client files to online
-        this.app.use('/example/client/', express.static(path.join(__directory, "../example/client/"))) //add the client files to online
+        this.app.use('/example/client/', express.static(path.join(__directory, "../../example/client/"))) //add the client files to online
 
         this.app.get("/", (req, res) => {
-            res.sendFile(path.join(__directory, "index.html"))
+            //res.sendFile(path.join(__directory, "index.html"));
+            res.send({'connected' : 'true'})
         })
 
         this.MessageHandler = new EventHandler()
@@ -71,30 +73,30 @@ export class BaseServer extends IRoom{
                         return
                     }
                     console.log(`Message received is not Message format`)
-                    this.MessageHandler.emit('error', ws, data)
+                    this.MessageHandler.emit('error_content', ws, data)
                     return
                 }
                 console.log(`Message received is not JSON format`)
-                this.MessageHandler.emit('error', ws, data)
+                this.MessageHandler.emit('error_format', ws, data)
                 return
             })
             this.MessageHandler.emit('connected', ws)
         })
     }
 
-    RegisterEventListener(eventName : string, callback : Function){
+    registerEventListener(eventName : string, callback : Function){
         this.MessageHandler.addEventListener(eventName, callback)
     }
 
-    ClearEvent(eventName : string){
+    clearEvent(eventName : string){
         return this.MessageHandler.clearEvent(eventName)
     }
 
-    RemoveEventListener(eventName : string, callback : Function){
+    removeEventListener(eventName : string, callback : Function){
         this.MessageHandler.removeEventListener(eventName, callback)
     }
 
-    EmitEvent(eventName : string, ...data : any[]){
+    emit(eventName : string, ...data : any[]){
         this.MessageHandler.emit(eventName, ...data)
     }
 

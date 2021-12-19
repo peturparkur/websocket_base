@@ -2,7 +2,24 @@ import WebSocket from 'ws'
 /**
  * Base class for room class, where WebSocket clients are grouped and can send messages to everyone in group
  */
-export class IRoom {
+
+export interface IRoomData{
+    /**
+     * clients within a room
+     */
+    clients : Set<WebSocket>;
+}
+
+export interface IBroadcastable {
+    /**
+     * Send the message to a given websocket(s)
+     * @param msg message to be sent
+     * @param client websocket(s) to send it to
+     */
+    SendTo(msg : any, client : WebSocket | Iterable<WebSocket>) : boolean;
+}
+
+export class Room implements IRoomData, IBroadcastable {
     /**
      * WebSocket clients within room
      */
@@ -16,7 +33,7 @@ export class IRoom {
      * @param client Client to add
      * @returns {boolean} True if client has been added, False otherwise
      */
-    AddClient(client : WebSocket){
+    public AddClient(client : WebSocket){
         if (this.clients.has(client)) return false
         this.clients.add(client)
         return true
@@ -25,8 +42,40 @@ export class IRoom {
      * Removes a WebSocket client from the room
      * @param client Client to remove
      */
-    RemoveClient(client : WebSocket){
+    public RemoveClient(client : WebSocket){
         return this.clients.delete(client)
+    }
+
+    private SendToWS(msg: any, client: WebSocket) : boolean{
+        if (!this.clients.has(client)) return false;
+        try{
+            client.send(msg);
+        }
+        catch(e){
+            return false;
+        }
+        return true;
+    }
+    private SendToAll(msg: any, clients: Iterable<WebSocket>) : boolean{
+        // Set is not ordered
+        for(const c of clients){
+            if (!this.clients.has(c)) return false;
+            try{
+                c.send(msg);
+            }
+            catch(e){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public SendTo(msg: any, client: WebSocket | Iterable<WebSocket>): boolean {
+        if(client instanceof WebSocket)
+        {
+            return this.SendToWS(msg, client)
+        }
+        return this.SendToAll(msg, client);
     }
 
     /**
@@ -34,9 +83,11 @@ export class IRoom {
      * @param msg Message to send
      * @param exclude Clients to exclude
      */
-    Broadcast(msg : any, exclude : Array<WebSocket> = []){
-        this.clients.forEach((ws : WebSocket) =>{
-            if (!exclude.includes(ws)) ws.send(msg)
-        })
+    public Broadcast(msg : any, exclude : Array<WebSocket> = []){
+        const vals = new Set(this.clients.values());
+        for(const c of exclude){
+            vals.delete(c)
+        }
+        return this.SendTo(msg, vals);
     }
 }

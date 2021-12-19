@@ -1,7 +1,5 @@
-/**
- * Base class for room class, where WebSocket clients are grouped and can send messages to everyone in group
- */
-export class IRoom {
+import WebSocket from 'ws';
+export class Room {
     constructor(clients = new Set()) {
         /**
          * WebSocket clients within room
@@ -27,15 +25,47 @@ export class IRoom {
     RemoveClient(client) {
         return this.clients.delete(client);
     }
+    SendToWS(msg, client) {
+        if (!this.clients.has(client))
+            return false;
+        try {
+            client.send(msg);
+        }
+        catch (e) {
+            return false;
+        }
+        return true;
+    }
+    SendToAll(msg, clients) {
+        // Set is not ordered
+        for (const c of clients) {
+            if (!this.clients.has(c))
+                return false;
+            try {
+                c.send(msg);
+            }
+            catch (e) {
+                return false;
+            }
+        }
+        return true;
+    }
+    SendTo(msg, client) {
+        if (client instanceof WebSocket) {
+            return this.SendToWS(msg, client);
+        }
+        return this.SendToAll(msg, client);
+    }
     /**
      * Sends message to all the clients within the room - excluding some
      * @param msg Message to send
      * @param exclude Clients to exclude
      */
     Broadcast(msg, exclude = []) {
-        this.clients.forEach((ws) => {
-            if (!exclude.includes(ws))
-                ws.send(msg);
-        });
+        const vals = new Set(this.clients.values());
+        for (const c of exclude) {
+            vals.delete(c);
+        }
+        return this.SendTo(msg, vals);
     }
 }
