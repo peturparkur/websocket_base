@@ -176,7 +176,7 @@ export class GameObject extends EventHandler implements IGameObject{
             c.gameobject = null;
         }
         this._components.clear()
-        
+
         let idx = this.parent?.children.indexOf(this)
         if(idx && (idx >= 0)){
             this.parent?.children.splice(idx, 1);
@@ -239,6 +239,8 @@ export class GameObject extends EventHandler implements IGameObject{
      * @param dt Unix time delta since last game update
      */
     Update(dt : number, time : number) : void{
+        if(!this.enabled) return;
+
         for(const c of this._components.values()){
             c.Update(dt, time);
         }
@@ -254,6 +256,8 @@ export class GameObject extends EventHandler implements IGameObject{
      * @param time Unix time at calling
      */
     OnRender(dt: number, time: number): void {
+        if(!this.enabled) return;
+
         for(const c of this._components.values()){
             c.OnRender(dt, time);
         }
@@ -269,6 +273,8 @@ export class GameObject extends EventHandler implements IGameObject{
      * @param dt Unix time delta since last game update
      */
     LateUpdate(dt : number, time : number) : void{
+        if(!this.enabled) return;
+
         for(const c of this._components.values()){
             c.LateUpdate(dt, time);
         }
