@@ -1,3 +1,3 @@
 # WEBSOCKET
 
-helo -> Hello Viktor
+helo -> Hello Viktor -> change
