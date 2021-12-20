@@ -8,6 +8,7 @@ import { Position2_Component } from "../scripts/game_engine_basic/game_engine.js
 
 class GameServer extends BaseServer{
     client_ids : Map<WebSocket, string> = new Map()
+    players : Set<WebSocket> = new Set()
     //client_hash : Map<string, WebSocket> = new Map()
 }
 
@@ -39,6 +40,7 @@ server.registerEventListener("close", (ws : WebSocket, data : any) => {
 })
 server.registerEventListener('close', (ws : WebSocket, data : any) => {
     server.client_ids.delete(ws);
+    server.players.delete(ws);
 })
 
 // Send the game details after the update cycle
@@ -48,7 +50,7 @@ game.addEventListener("Update", () => {
         let pos = p.GetComponent(Position2_Component)
         positions.push({id : id, position : {"x" : pos.x, "y" : pos.y}})
     }
-    for(const c of server.clients){
+    for(const c of server.players){
         let id = server.client_ids.get(c)
         if(!id) continue;
         let pos = game.players.get(id)?.GetComponent(Position2_Component)
@@ -74,6 +76,9 @@ for(const [name, e] of game.listeners.entries()){
         game.emit(name, server.client_ids.get(ws), ...data);
     })
 }
+server.registerEventListener("game_create_player", (ws : WebSocket, ... date : any[]) => {
+    server.players.add(ws);
+})
 
 //server.registerEventListener('move', (ws : WebSocket, data : number) => {
 //    game.emit("move", data);

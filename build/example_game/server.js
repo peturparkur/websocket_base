@@ -7,6 +7,7 @@ class GameServer extends BaseServer {
     constructor() {
         super(...arguments);
         this.client_ids = new Map();
+        this.players = new Set();
         //client_hash : Map<string, WebSocket> = new Map()
     }
 }
@@ -36,6 +37,7 @@ server.registerEventListener("close", (ws, data) => {
 });
 server.registerEventListener('close', (ws, data) => {
     server.client_ids.delete(ws);
+    server.players.delete(ws);
 });
 // Send the game details after the update cycle
 game.addEventListener("Update", () => {
@@ -44,7 +46,7 @@ game.addEventListener("Update", () => {
         let pos = p.GetComponent(Position2_Component);
         positions.push({ id: id, position: { "x": pos.x, "y": pos.y } });
     }
-    for (const c of server.clients) {
+    for (const c of server.players) {
         let id = server.client_ids.get(c);
         if (!id)
             continue;
@@ -66,6 +68,9 @@ for (const [name, e] of game.listeners.entries()) {
         game.emit(name, server.client_ids.get(ws), ...data);
     });
 }
+server.registerEventListener("game_create_player", (ws, ...date) => {
+    server.players.add(ws);
+});
 //server.registerEventListener('move', (ws : WebSocket, data : number) => {
 //    game.emit("move", data);
 //})

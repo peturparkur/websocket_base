@@ -68,6 +68,10 @@ export function StartGame() {
     //console.log(p.y)
     //let move = player.AddComponent(new Move_Component())
     scene.addEventListener("disconnect", (ws) => {
+        let p = scene.players.get(ws);
+        if (!p)
+            return;
+        scene.DestroyChild(p);
         scene.players.delete(ws);
     });
     scene.addEventListener("move", (ws, delta = [0, 0]) => {
